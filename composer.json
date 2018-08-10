@@ -1,7 +1,6 @@
 {
     "name": "rvanginneken/gitbox",
     "description": "A GIT extension for The Box Versioning.",
-    "type": "composer-plugin",
     "authors": [
         {
             "name": "Roy Van Ginneken",
