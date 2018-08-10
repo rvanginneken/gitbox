@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# A small script to make it easier to start a new release/hotfix
+# without checking the last used tag or whether a realse/hofix is open.
+#
+# Created by: Roy Van Ginneken
+
+ACTION=$1
+OLDTAG="0.0.0"
+NEWTAG=""
+
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    printf '%s\n' "Fatal: Not a git repository."
+    exit 1
+fi
+
+if [ $(git branch --no-color --list "*release/*" "*hotfix/*" | wc -l) -gt 0 ]; then
+    printf '%s\n' "Fatal: There already is an open release or hotfix."
+    exit 1;
+fi
+
+if [ -z $ACTION ];then
+    printf '%s\n' "Syntax is git box [major|release|hotfix]."
+    exit;
+fi
+
+if [ $ACTION != 'major' ] && [ $ACTION != 'release' ] &&  [ $ACTION != 'hotfix' ];then
+    printf '%s\n' "Action $ACTION is not supported."
+    exit 1;
+fi
+
+if git describe > /dev/null 2>&1; then
+    git fetch --tags > /dev/null 2>&1
+    OLDTAG=$(git describe --tags --abbrev=0)
+fi
+
+if ! [[ $OLDTAG =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+   printf '%s\n' "Last tag $OLDTAG is not valid. Make sure your last tag follows the [MAJOR].[RELEASE].[HOTFIX] sytax."
+   exit 1
+fi
+
+while IFS='.' read -ra NR; do
+    COUNTER=0;
+      for i in "${NR[@]}"; do
+          let COUNTER++
+          [[ ! -z $NEWTAG ]] && NEWTAG="$NEWTAG."
+          if [ $ACTION = 'major' ];then
+              if [ $COUNTER = 1 ];then
+                  NEWTAG="$NEWTAG$((i + 1))"
+              else
+                  NEWTAG="${NEWTAG}0"
+              fi
+          elif [ $ACTION = 'release' ];then
+              if [ $COUNTER = 1 ];then
+                  NEWTAG="$NEWTAG$i"
+              elif [ $COUNTER = 2 ];then
+                  NEWTAG="$NEWTAG$((i + 1))"
+              else
+                  NEWTAG="${NEWTAG}0"
+              fi
+          elif [ $ACTION = 'hotfix' ]; then
+              if [ $COUNTER = 3 ];then
+                  NEWTAG="$NEWTAG$((i + 1))"
+              else
+                  NEWTAG="$NEWTAG$i"
+              fi
+          fi
+      done
+ done <<< "$OLDTAG"
+
+if [ $ACTION = 'major' ];then
+    ACTION='release'
+fi
+
+git flow $ACTION start $NEWTAG
+git flow publish
