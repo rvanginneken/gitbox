@@ -8,8 +8,5 @@
             "email": "royvanginneken@gmail.com"
         }
     ],
-    "require": {
-        "git": ">=2.0.0"
-    },
     "bin": ["bin/git-box"]
 }
