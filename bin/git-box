@@ -30,6 +30,8 @@ if [ $ACTION != 'major' ] && [ $ACTION != 'release' ] &&  [ $ACTION != 'hotfix' 
     exit 1;
 fi
 
+git checkout master
+
 if git describe > /dev/null 2>&1; then
     git fetch --tags > /dev/null 2>&1
     OLDTAG=$(git describe --tags --abbrev=0)
