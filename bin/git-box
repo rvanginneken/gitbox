@@ -14,6 +14,11 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
     exit 1
 fi
 
+if ! git config gitflow.branch.master > /dev/null 2>&1; then
+    printf '%s\n' "Git flow is not initialized yet, use `git flow init` to get started."
+    exit 1
+fi
+
 if [ $(git branch --no-color --list "*release/*" "*hotfix/*" | wc -l) -gt 0 ]; then
     printf '%s\n' "Fatal: There already is an open release or hotfix:"
     git branch --no-color --list "*release/*" "*hotfix/*"
@@ -30,7 +35,7 @@ if [ $ACTION != 'major' ] && [ $ACTION != 'release' ] &&  [ $ACTION != 'hotfix' 
     exit 1;
 fi
 
-git checkout master
+git checkout $(git config gitflow.branch.master)
 
 if git describe > /dev/null 2>&1; then
     git fetch --tags > /dev/null 2>&1
